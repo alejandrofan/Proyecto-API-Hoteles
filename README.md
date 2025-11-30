@@ -28,7 +28,7 @@ Fijar correctamente el ADR es un reto debido a fluctuaciones en la demanda, temp
 * **Joblib:** Persistencia del modelo entrenado.
 * **FastAPI & Uvicorn:** Creación del servidor API REST y despliegue asíncrono.
 * **SQLite:** Base de datos relacional ligera para almacenar reservas e historial de predicciones.
-* 
+
 ### Interfaz Web/Frontend:
 * **HTML & CSS:** Estructura y diseño.
 * **Bootstrap 5:** Diseño responsivo y componentes visuales modernos.
