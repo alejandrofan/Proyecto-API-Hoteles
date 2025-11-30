@@ -8,7 +8,7 @@ import xgboost
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime  # <--- IMPORTANTE: Necesario para la fecha
+from datetime import datetime 
 
 # Configuración para evitar errores en Jupyter/Spyder
 nest_asyncio.apply()
