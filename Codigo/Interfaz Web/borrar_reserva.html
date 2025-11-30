@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrar Reserva | Hotel AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f3f4f6; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px;}
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; }
+        
+        .delete-card { border-left: 5px solid #dc3545; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+             <nav>
+                <a href="index.html"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="borrar_reserva.html"class="active"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html"><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            
+            <h2 class="mb-4">Eliminar Reserva</h2>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    
+                    <div class="card shadow-sm delete-card mb-4">
+                        <div class="card-body p-5 text-center">
+                            <div class="mb-4">
+                                <span class="bg-danger bg-opacity-10 text-danger p-3 rounded-circle">
+                                    <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+                                </span>
+                            </div>
+                            
+                            <h4 class="card-title">Borrar Reserva por ID</h4>
+                            <p class="text-muted mb-4">Introduce el ID único de la reserva que deseas eliminar.</p>
+
+                            <form id="deleteForm" onsubmit="confirmarBorrado(event)">
+                                <div class="mb-3">
+                                    <input type="number" class="form-control form-control-lg text-center" id="reservaId" placeholder="Ej: 10452" required>
+                                </div>
+                                <button type="submit" class="btn btn-danger btn-lg w-100">
+                                    <i class="bi bi-trash3-fill me-2"></i> Eliminar Reserva
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="mensajeExito" class="alert alert-success d-flex align-items-center shadow-sm d-none" role="alert">
+                        <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>¡Éxito!</strong> <span id="textoExito"></span>
+                        </div>
+                    </div>
+
+                    <div id="mensajeError" class="alert alert-danger d-flex align-items-center shadow-sm d-none" role="alert">
+                        <i class="bi bi-x-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>Error:</strong> <span id="textoError"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    async function confirmarBorrado(event) {
+        event.preventDefault(); // Evitar recarga del formulario
+
+        const idInput = document.getElementById('reservaId');
+        const id = idInput.value;
+        const boxExito = document.getElementById('mensajeExito');
+        const boxError = document.getElementById('mensajeError');
+        
+        // 1. Ocultar ambos mensajes al empezar (usando clases de Bootstrap)
+        boxExito.classList.add('d-none');
+        boxError.classList.add('d-none');
+
+        // 2. Confirmación de seguridad
+        if (!confirm(`¿Estás SEGURO de que quieres eliminar la reserva ID: ${id}?\nEsta acción no se puede deshacer.`)) {
+            return;
+        }
+
+        try {
+            // 3. Llamada a la API (DELETE)
+            const response = await fetch(`http://127.0.0.1:8000/reservas/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) throw new Error("ID no encontrado en la base de datos.");
+                throw new Error("Error en el servidor al intentar borrar.");
+            }
+
+            const data = await response.json();
+
+            // 4. Éxito: Mostrar mensaje y limpiar input
+            document.getElementById('textoExito').innerText = data.mensaje;
+            boxExito.classList.remove('d-none'); // Quitar clase ocultar
+            idInput.value = ''; // Limpiar campo
+
+        } catch (error) {
+            // 5. Error: Mostrar mensaje rojo
+            console.error(error);
+            document.getElementById('textoError').innerText = error.message;
+            boxError.classList.remove('d-none'); // Quitar clase ocultar
+        }
+    }
+</script>
+
+</body>
+</html>

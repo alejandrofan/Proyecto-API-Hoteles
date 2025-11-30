@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Países | Hotel AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f3f4f6; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px;}
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; }
+        
+        /* Estilos de las banderas/tarjetas */
+        .country-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: default;
+        }
+        .country-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+            border-color: #4f46e5 !important;
+        }
+        .country-code {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #4f46e5;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+             <nav>
+                <a href="index.html"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"class="active"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="borrar_reserva.html"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html" ><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-globe-americas text-primary me-2"></i>Países de Origen</h2>
+                <div class="badge bg-primary fs-6">Total: <span id="totalCount">0</span></div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="buscador" class="form-control border-start-0" placeholder="Filtrar país (ej: PRT, ESP)..." onkeyup="filtrarPaises()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Cargando listado de países...</p>
+            </div>
+
+            <div id="paisesGrid" class="row g-3" style="display: none;">
+                </div>
+
+            <div id="errorMsg" class="alert alert-danger mt-4" style="display: none;">
+                Error al cargar. Verifica que <code>main.py</code> está ejecutándose.
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Conexión al endpoint /pais/
+            const response = await fetch('http://127.0.0.1:8000/pais/');
+            if (!response.ok) throw new Error("Error en la petición");
+
+            const data = await response.json();
+            
+            // Actualizar contador total
+            document.getElementById('totalCount').innerText = data.total_paises;
+
+            const grid = document.getElementById('paisesGrid');
+            const listaPaises = data.countries; // Array de strings ["PRT", "ESP", ...]
+
+            // Crear tarjetas para cada país
+            listaPaises.forEach(pais => {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-sm-4 col-md-3 col-xl-2 country-item';
+                col.innerHTML = `
+                    <div class="card h-100 shadow-sm border-0 country-card text-center py-3">
+                        <div class="card-body">
+                            <div class="country-code mb-1">${pais}</div>
+                            <small class="text-muted text-uppercase">ISO CODE</small>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(col);
+            });
+
+            // Mostrar resultado
+            document.getElementById('loading').style.display = 'none';
+            grid.style.display = 'flex';
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    });
+
+    // Función simple para filtrar en el cliente
+    function filtrarPaises() {
+        const input = document.getElementById('buscador').value.toUpperCase();
+        const items = document.getElementsByClassName('country-item');
+
+        for (let i = 0; i < items.length; i++) {
+            const codigo = items[i].querySelector('.country-code').innerText;
+            if (codigo.indexOf(input) > -1) {
+                items[i].style.display = "";
+            } else {
+                items[i].style.display = "none";
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

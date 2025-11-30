@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Datos | Hotel AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f3f4f6; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px;}
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; }
+        
+        /* Estilos Tarjetas de Resultados */
+        .result-card {
+            border: none;
+            transition: transform 0.2s;
+        }
+        .result-card:hover { transform: translateY(-5px); }
+        .icon-circle {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+             <nav>
+                <a href="index.html"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"class="active"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="borrar_reserva.html"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html" ><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            
+            <h2 class="mb-4">Análisis Histórico de Reservas</h2>
+            
+            <div class="card shadow-sm border-0 mb-5">
+                <div class="card-body p-4">
+                    <h5 class="card-title text-muted mb-4"><i class="bi bi-funnel-fill me-2"></i>Filtrar por Fecha</h5>
+                    
+                    <form id="searchForm" onsubmit="consultarDatos(event)" class="row g-3 align-items-end">
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Año</label>
+                            <input type="number" id="year" class="form-control form-control-lg" value="2016" placeholder="Ej: 2017">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Mes</label>
+                            <select id="month" class="form-select form-select-lg">
+                                <option value="January">Enero</option>
+                                <option value="February">Febrero</option>
+                                <option value="March">Marzo</option>
+                                <option value="April">Abril</option>
+                                <option value="May">Mayo</option>
+                                <option value="June">Junio</option>
+                                <option value="July">Julio</option>
+                                <option value="August" selected>Agosto</option>
+                                <option value="September">Septiembre</option>
+                                <option value="October">Octubre</option>
+                                <option value="November">Noviembre</option>
+                                <option value="December">Diciembre</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-search me-2"></i> Consultar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="resultsArea" style="display: none;">
+                <h5 class="mb-3 text-muted">Resultados para: <span id="fechaTitulo" class="text-dark fw-bold"></span></h5>
+                
+                <div class="row g-4">
+                    
+                    <div class="col-md-4">
+                        <div class="card result-card shadow-sm h-100 border-start border-4 border-primary">
+                            <div class="card-body text-center p-4">
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto">
+                                    <i class="bi bi-bookmarks-fill"></i>
+                                </div>
+                                <h2 class="display-5 fw-bold" id="resTotal">0</h2>
+                                <p class="text-muted text-uppercase small ls-1">Total Reservas</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card result-card shadow-sm h-100 border-start border-4 border-danger">
+                            <div class="card-body text-center p-4">
+                                <div class="icon-circle bg-danger bg-opacity-10 text-danger mx-auto">
+                                    <i class="bi bi-x-octagon-fill"></i>
+                                </div>
+                                <h2 class="display-5 fw-bold" id="resCanceladas">0</h2>
+                                <p class="text-muted text-uppercase small ls-1">Reservas Canceladas</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card result-card shadow-sm h-100 border-start border-4 border-success">
+                            <div class="card-body text-center p-4">
+                                <div class="icon-circle bg-success bg-opacity-10 text-success mx-auto">
+                                    <i class="bi bi-currency-euro"></i>
+                                </div>
+                                <h2 class="display-5 fw-bold" id="resPrecio">0</h2>
+                                <p class="text-muted text-uppercase small ls-1">Precio Medio (ADR)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+
+            <div id="noDataMsg" class="alert alert-warning mt-4 shadow-sm" style="display: none;">
+                <i class="bi bi-exclamation-circle-fill me-2"></i> 
+                No se encontraron datos para la fecha seleccionada. Prueba con otro año (ej: 2016 o 2017).
+            </div>
+            
+            <div id="errorMsg" class="alert alert-danger mt-4 shadow-sm" style="display: none;">
+                <i class="bi bi-bug-fill me-2"></i> Error de conexión. Revisa que <code>main.py</code> esté activo.
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    async function consultarDatos(event) {
+        event.preventDefault();
+
+        const year = document.getElementById('year').value;
+        const month = document.getElementById('month').value;
+
+        // UI Updates
+        document.getElementById('resultsArea').style.display = 'none';
+        document.getElementById('noDataMsg').style.display = 'none';
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        try {
+            // Llamada al endpoint: /analisis-reservas/?year=...&mes=...
+            const response = await fetch(`http://127.0.0.1:8000/analisis-reservas/?year=${year}&mes=${month}`);
+            
+            if (!response.ok) throw new Error("Error de red");
+
+            const data = await response.json();
+
+            // Ocultar loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Comprobar si la API devolvió el mensaje de "No hay datos"
+            if (data.mensaje) {
+                document.getElementById('noDataMsg').style.display = 'block';
+                return;
+            }
+
+            // Si hay datos, rellenamos las tarjetas
+            document.getElementById('fechaTitulo').innerText = `${month} ${year}`;
+            document.getElementById('resTotal').innerText = data.total_reservas.toLocaleString();
+            document.getElementById('resCanceladas').innerText = data.canceladas.toLocaleString();
+            document.getElementById('resPrecio').innerText = data.precio_promedio + " €";
+
+            // Mostrar área de resultados
+            document.getElementById('resultsArea').style.display = 'block';
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>

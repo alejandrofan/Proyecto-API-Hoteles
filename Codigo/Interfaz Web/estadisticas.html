@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas Globales | Hotel AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f3f4f6; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px;}
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; }
+        
+        /* Estilos de las Tarjetas de Estadísticas */
+        .stat-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .bg-indigo-light { background-color: #e0e7ff; color: #4338ca; }
+        .bg-green-light { background-color: #dcfce7; color: #15803d; }
+        .bg-blue-light { background-color: #dbeafe; color: #1e40af; }
+        .bg-orange-light { background-color: #ffedd5; color: #c2410c; }
+        .bg-pink-light { background-color: #fce7f3; color: #be185d; }
+
+        .stat-label { font-size: 0.85rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: #1e293b; }
+        
+        .sub-stat { font-size: 0.85rem; color: #64748b; }
+        .sub-stat strong { color: #334155; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+              <nav>
+                <a href="index.html"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"class="active"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="borrar_reserva.html"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html" ><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Estadísticas Descriptivas</h2>
+                <button class="btn btn-outline-primary btn-sm" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+                </button>
+            </div>
+
+            <div id="loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Calculando estadísticas de la base de datos...</p>
+            </div>
+
+            <div id="statsContent" style="display: none;">
+                
+                <div class="card bg-primary text-white shadow mb-4 border-0">
+                    <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 text-uppercase mb-1">Total Registros en Base de Datos</h6>
+                            <h1 class="display-4 fw-bold mb-0" id="totalReservas">0</h1>
+                        </div>
+                        <i class="bi bi-database-check display-1 opacity-25"></i>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card stat-card p-4">
+                            <div class="stat-icon bg-indigo-light">
+                                <i class="bi bi-currency-euro"></i>
+                            </div>
+                            <div class="stat-label">Precio Medio (ADR)</div>
+                            <div class="stat-value my-2" id="adrMean">0 €</div>
+                            <div class="d-flex justify-content-between sub-stat mt-3 pt-3 border-top">
+                                <span>Mín: <strong id="adrMin">0</strong> €</span>
+                                <span>Máx: <strong id="adrMax">0</strong> €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card stat-card p-4">
+                            <div class="stat-icon bg-green-light">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <div class="stat-label">Adultos Promedio</div>
+                            <div class="stat-value my-2" id="adultsMean">0</div>
+                            <div class="d-flex justify-content-between sub-stat mt-3 pt-3 border-top">
+                                <span>Mín: <strong id="adultsMin">0</strong></span>
+                                <span>Máx: <strong id="adultsMax">0</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card stat-card p-4">
+                            <div class="stat-icon bg-blue-light">
+                                <i class="bi bi-emoji-smile"></i>
+                            </div>
+                            <div class="stat-label">Niños Promedio</div>
+                            <div class="stat-value my-2" id="childrenMean">0</div>
+                            <div class="d-flex justify-content-between sub-stat mt-3 pt-3 border-top">
+                                <span>Mín: <strong id="childrenMin">0</strong></span>
+                                <span>Máx: <strong id="childrenMax">0</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-6 col-md-6">
+                        <div class="card stat-card p-4">
+                            <div class="stat-icon bg-orange-light">
+                                <i class="bi bi-calendar-day"></i>
+                            </div>
+                            <div class="stat-label">Noches Entre Semana</div>
+                            <div class="stat-value my-2" id="weekNightsMean">0</div>
+                            <div class="d-flex justify-content-between sub-stat mt-3 pt-3 border-top">
+                                <span>Estancia Mínima: <strong id="weekNightsMin">0</strong></span>
+                                <span>Estancia Máxima: <strong id="weekNightsMax">0</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-6 col-md-6">
+                        <div class="card stat-card p-4">
+                            <div class="stat-icon bg-pink-light">
+                                <i class="bi bi-calendar-week"></i>
+                            </div>
+                            <div class="stat-label">Noches Fin de Semana</div>
+                            <div class="stat-value my-2" id="weekendNightsMean">0</div>
+                            <div class="d-flex justify-content-between sub-stat mt-3 pt-3 border-top">
+                                <span>Estancia Mínima: <strong id="weekendNightsMin">0</strong></span>
+                                <span>Estancia Máxima: <strong id="weekendNightsMax">0</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> </div> <div id="errorMsg" class="alert alert-danger mt-4" style="display: none;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Error al cargar datos. Asegúrate de que <code>main.py</code> está ejecutándose.
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // CONEXIÓN AL ENDPOINT /estadisticas/
+            const response = await fetch('http://127.0.0.1:8000/estadisticas/');
+            
+            if (!response.ok) throw new Error("Error de conexión");
+
+            const data = await response.json();
+
+            // 1. Total Reservas
+            document.getElementById('totalReservas').innerText = data.total_reservas.toLocaleString();
+
+            // 2. ADR (Precio) - Añadimos símbolo €
+            if (data.adr && data.adr !== "Error") {
+                document.getElementById('adrMean').innerText = data.adr.mean + " €";
+                document.getElementById('adrMin').innerText = data.adr.min;
+                document.getElementById('adrMax').innerText = data.adr.max;
+            }
+
+            // 3. Adultos
+            if (data.adults && data.adults !== "Error") {
+                document.getElementById('adultsMean').innerText = data.adults.mean;
+                document.getElementById('adultsMin').innerText = data.adults.min;
+                document.getElementById('adultsMax').innerText = data.adults.max;
+            }
+
+            // 4. Niños
+            if (data.children && data.children !== "Error") {
+                document.getElementById('childrenMean').innerText = data.children.mean;
+                document.getElementById('childrenMin').innerText = data.children.min;
+                document.getElementById('childrenMax').innerText = data.children.max;
+            }
+
+            // 5. Noches Semana
+            if (data.stays_in_week_nights && data.stays_in_week_nights !== "Error") {
+                document.getElementById('weekNightsMean').innerText = data.stays_in_week_nights.mean;
+                document.getElementById('weekNightsMin').innerText = data.stays_in_week_nights.min;
+                document.getElementById('weekNightsMax').innerText = data.stays_in_week_nights.max;
+            }
+
+            // 6. Noches Finde
+            if (data.stays_in_weekend_nights && data.stays_in_weekend_nights !== "Error") {
+                document.getElementById('weekendNightsMean').innerText = data.stays_in_weekend_nights.mean;
+                document.getElementById('weekendNightsMin').innerText = data.stays_in_weekend_nights.min;
+                document.getElementById('weekendNightsMax').innerText = data.stays_in_weekend_nights.max;
+            }
+
+            // Mostrar contenido y ocultar loading
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('statsContent').style.display = 'block';
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>

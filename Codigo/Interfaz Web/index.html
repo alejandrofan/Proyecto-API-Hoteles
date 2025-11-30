@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Mando | Hotel AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Sidebar styling */
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px; transition: 0.2s;}
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; padding-left: 20px;}
+
+        /* Hero Section */
+        .hero-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            transition: transform 0.3s ease;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        .stat-icon {
+            width: 60px; height: 60px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin-right: 20px;
+        }
+
+        /* Quick Actions Grid */
+        .action-card {
+            border: 2px dashed #e2e8f0;
+            background: transparent;
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #64748b;
+        }
+        .action-card:hover {
+            border-color: #4f46e5;
+            background: white;
+            color: #4f46e5;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        /* Status Dot */
+        .status-dot {
+            height: 12px; width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .online { background-color: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        .offline { background-color: #ef4444; }
+
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+             <nav>
+                <a href="index.html"class="active"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="borrar_reserva.html"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html" ><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <span id="apiStatusDot" class="status-dot offline"></span>
+                    <span id="apiStatusText" class="text-muted small">Desconectado</span>
+                </div>
+                <div class="text-muted small">
+                    <i class="bi bi-calendar-date me-1"></i> <span id="currentDate"></span>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <h1 class="display-5 fw-bold" id="greeting">Hola!</h1>
+                <p class="lead mb-4">Bienvenido a tu sistema de Inteligencia Hotelera. Hoy es un buen día para optimizar ingresos.</p>
+                <a href="prediccion.html" class="btn btn-light text-primary fw-bold px-4 py-2 rounded-pill shadow-sm">
+                    <i class="bi bi-magic me-2"></i> Probar IA de Precios
+                </a>
+            </div>
+
+            <h5 class="text-muted mb-3 text-uppercase small fw-bold ls-1">Métricas en Tiempo Real</h5>
+            <div class="row g-4 mb-5">
+                
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <div>
+                            <h2 class="fw-bold mb-0" id="statTotal">--</h2>
+                            <span class="text-muted small">Reservas Totales</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-currency-euro"></i>
+                        </div>
+                        <div>
+                            <h2 class="fw-bold mb-0" id="statADR">--</h2>
+                            <span class="text-muted small">Precio Medio Histórico</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-moon-stars"></i>
+                        </div>
+                        <div>
+                            <h2 class="fw-bold mb-0" id="statNights">--</h2>
+                            <span class="text-muted small">Estancia Media (Noches)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="text-muted mb-3 text-uppercase small fw-bold ls-1">Accesos Rápidos</h5>
+            <div class="row g-4">
+                <div class="col-6 col-md-3" onclick="window.location.href='crear_reserva.html'">
+                    <div class="action-card">
+                        <i class="bi bi-plus-circle display-5 mb-3"></i>
+                        <h6 class="fw-bold">Nueva Reserva</h6>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" onclick="window.location.href='prediccion.html'">
+                    <div class="action-card">
+                        <i class="bi bi-cpu display-5 mb-3"></i>
+                        <h6 class="fw-bold">Predecir Precio</h6>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" onclick="window.location.href='datos.html'">
+                    <div class="action-card">
+                        <i class="bi bi-table display-5 mb-3"></i>
+                        <h6 class="fw-bold">Consultar Datos</h6>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" onclick="window.location.href='borrar_reserva.html'">
+                    <div class="action-card">
+                        <i class="bi bi-trash3 display-5 mb-3 text-danger"></i>
+                        <h6 class="fw-bold text-danger">Borrar Reserva</h6>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 1. Lógica del Saludo y Fecha
+    function initWelcome() {
+        const hour = new Date().getHours();
+        let greetingText = "Hola";
+        
+        if (hour < 12) greetingText = "Buenos días";
+        else if (hour < 20) greetingText = "Buenas tardes";
+        else greetingText = "Buenas noches";
+
+        document.getElementById('greeting').innerText = `${greetingText}, Jesús!`;
+
+        // Fecha actual
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('es-ES', options);
+    }
+
+    // 2. Cargar datos reales desde la API
+    async function loadLiveStats() {
+        const statusDot = document.getElementById('apiStatusDot');
+        const statusText = document.getElementById('apiStatusText');
+
+        try {
+            // Usamos el endpoint de estadísticas globales
+            const response = await fetch('http://127.0.0.1:8000/estadisticas/');
+            
+            if (response.ok) {
+                // API ONLINE
+                statusDot.className = "status-dot online";
+                statusText.innerText = "API Online";
+                
+                const data = await response.json();
+                
+                // Actualizar números con animación simple
+                animateValue("statTotal", 0, data.total_reservas, 1000);
+                
+                if (data.adr && data.adr.mean) {
+                    animateValue("statADR", 0, Math.round(data.adr.mean), 1000, "€");
+                }
+
+                // Calcular estancia media (Noches semana + finde)
+                if (data.stays_in_week_nights && data.stays_in_weekend_nights) {
+                    const totalNights = data.stays_in_week_nights.mean + data.stays_in_weekend_nights.mean;
+                    document.getElementById('statNights').innerText = totalNights.toFixed(1);
+                }
+
+            } else {
+                throw new Error("Error API");
+            }
+        } catch (error) {
+            // API OFFLINE
+            console.error("No se pudo conectar a la API", error);
+            statusDot.className = "status-dot offline";
+            statusText.innerText = "Sin conexión (Ejecuta main.py)";
+        }
+    }
+
+    // Pequeña función para animar los números (contador)
+    function animateValue(id, start, end, duration, suffix = "") {
+        const obj = document.getElementById(id);
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start) + suffix;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    // Ejecutar al inicio
+    document.addEventListener('DOMContentLoaded', () => {
+        initWelcome();
+        loadLiveStats();
+    });
+</script>
+
+</body>
+</html>

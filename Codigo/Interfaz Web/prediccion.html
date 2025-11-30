@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción ADR | Hotel AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- ESTILOS GENERALES (Iguales al resto de tu web) --- */
+        body { background-color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px;}
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; }
+        
+        /* --- ESTILOS NUEVOS (Solo para el contenido del formulario) --- */
+        
+        /* Tarjetas del formulario */
+        .form-card {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            padding: 25px;
+            transition: transform 0.2s;
+        }
+        .form-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: center;
+        }
+        .section-title i { font-size: 1.1rem; margin-right: 10px; color: #4f46e5; }
+
+        /* Inputs estilizados */
+        .form-label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+        .form-control, .form-select {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Panel Lateral Sticky (Resultado) */
+        .sticky-panel {
+            position: sticky;
+            top: 20px;
+        }
+
+        .price-card-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .price-value { font-family: 'Inter', sans-serif; font-size: 3.5rem; font-weight: 800; line-height: 1; margin: 15px 0; }
+        
+        /* Botón Principal */
+        .btn-predict {
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-predict:hover { background-color: black; transform: translateY(-2px); }
+
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+            <nav>
+                <a href="index.html"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="borrar_reserva.html"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"class="active"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html" ><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 fw-bold text-dark">Calculadora de Tarifas (ADR)</h2>
+                <span class="badge bg-white text-primary border shadow-sm px-3 py-2 rounded-pill">
+                    <i class="bi bi-cpu-fill me-2"></i>IA Model Ready
+                </span>
+            </div>
+
+            <div class="row g-4">
+                
+                <div class="col-lg-8">
+                    <form id="predictionForm">
+                        
+                        <div class="form-card">
+                            <div class="section-title"><i class="bi bi-calendar-check"></i> Configuración de Estancia</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Hotel</label>
+                                    <select class="form-select" id="hotel">
+                                        <option value="City Hotel">City Hotel</option>
+                                        <option value="Resort Hotel">Resort Hotel</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Antelación (Lead Time)</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="lead_time" value="45">
+                                        <span class="input-group-text bg-light text-muted">Días</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Mes Llegada</label>
+                                    <select class="form-select" id="arrival_date_month">
+                                        <option value="January">Enero</option>
+                                        <option value="February">Febrero</option>
+                                        <option value="March">Marzo</option>
+                                        <option value="April">Abril</option>
+                                        <option value="May">Mayo</option>
+                                        <option value="June">Junio</option>
+                                        <option value="July">Julio</option>
+                                        <option value="August" selected>Agosto</option>
+                                        <option value="September">Septiembre</option>
+                                        <option value="October">Octubre</option>
+                                        <option value="November">Noviembre</option>
+                                        <option value="December">Diciembre</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Día del Mes</label>
+                                    <input type="number" class="form-control" id="arrival_date_day_of_month" value="15">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Semana Nº</label>
+                                    <input type="number" class="form-control" id="arrival_date_week_number" value="33">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <div class="section-title"><i class="bi bi-people"></i> Huéspedes y Duración</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Adultos</label>
+                                    <input type="number" class="form-control" id="adults" value="2" min="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Niños</label>
+                                    <input type="number" class="form-control" id="children" value="0" min="0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Bebés</label>
+                                    <input type="number" class="form-control" id="babies" value="0" min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Noches Semana</label>
+                                    <input type="number" class="form-control" id="stays_in_week_nights" value="3">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Noches Finde</label>
+                                    <input type="number" class="form-control" id="stays_in_weekend_nights" value="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-card">
+                            <div class="section-title"><i class="bi bi-sliders"></i> Detalles Técnicos</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Habitación</label>
+                                    <select class="form-select" id="reserved_room_type">
+                                        <option value="A">Estándar (A)</option>
+                                        <option value="D">Deluxe (D)</option>
+                                        <option value="E">Suite (E)</option>
+                                        <option value="F">Familiar (F)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Régimen</label>
+                                    <select class="form-select" id="meal">
+                                        <option value="BB">Desayuno (BB)</option>
+                                        <option value="HB">Media Pensión</option>
+                                        <option value="FB">Pensión Completa</option>
+                                        <option value="SC">Sin Comida</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Segmento</label>
+                                    <select class="form-select" id="market_segment">
+                                        <option value="Online TA">Online TA</option>
+                                        <option value="Offline TA/TO">Agencia Offline</option>
+                                        <option value="Direct">Directo</option>
+                                        <option value="Corporate">Corporativo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Canal</label>
+                                    <select class="form-select" id="distribution_channel">
+                                        <option value="TA/TO">TA/TO</option>
+                                        <option value="Direct">Directo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Depósito</label>
+                                    <select class="form-select" id="deposit_type">
+                                        <option value="No Deposit">Sin Depósito</option>
+                                        <option value="Non Refund">No Reembolsable</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tipo Cliente</label>
+                                    <select class="form-select" id="customer_type">
+                                        <option value="Transient">Transient</option>
+                                        <option value="Contract">Contrato</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">País (Código)</label>
+                                    <input type="text" class="form-control" id="country" value="PRT" maxlength="3" style="text-transform: uppercase;">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Peticiones</label>
+                                    <input type="number" class="form-control" id="total_of_special_requests" value="0">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Parking</label>
+                                    <input type="number" class="form-control" id="required_car_parking_spaces" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="sticky-panel">
+                        
+                        <div class="price-card-gradient mb-3">
+                            <div id="waitingState">
+                                <i class="bi bi-stars fs-1 opacity-50 mb-3 d-block"></i>
+                                <h4 class="fw-bold">Esperando datos</h4>
+                                <p class="small opacity-75 mb-0">Rellena el formulario y calcula.</p>
+                            </div>
+
+                            <div id="resultState" style="display: none;">
+                                <div class="small text-uppercase opacity-75 fw-bold ls-1">ADR Estimado</div>
+                                <div class="price-value"><span id="precio-valor">0</span>€</div>
+                                <div class="badge bg-white text-primary bg-opacity-90 px-3 py-2 rounded-pill mt-2 text-dark">
+                                    <i class="bi bi-check-circle-fill text-success me-1"></i> Predicción IA
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-predict" onclick="enviarPrediccion()">
+                            <i class="bi bi-lightning-charge-fill me-2 text-warning"></i> CALCULAR PRECIO
+                        </button>
+
+                        <div class="bg-white rounded-3 p-4 mt-4 shadow-sm">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-2 text-primary"></i>Variables Ocultas</h6>
+                            <p class="text-muted small mb-0">
+                                Para simplificar, el sistema asume automáticamente el año actual (2024), asigna la misma habitación reservada y establece valores nulos para historial de cancelaciones.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div> </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    async function enviarPrediccion() {
+        const btn = document.querySelector('.btn-predict');
+        const waiting = document.getElementById('waitingState');
+        const result = document.getElementById('resultState');
+        const priceSpan = document.getElementById('precio-valor');
+
+        // Estado visual de carga
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Calculando...';
+        btn.disabled = true;
+
+        // Recogida de datos
+        const adults = parseInt(document.getElementById('adults').value) || 0;
+        const children = parseInt(document.getElementById('children').value) || 0;
+        const babies = parseInt(document.getElementById('babies').value) || 0;
+        const weekend_nights = parseInt(document.getElementById('stays_in_weekend_nights').value) || 0;
+        const week_nights = parseInt(document.getElementById('stays_in_week_nights').value) || 0;
+        const roomType = document.getElementById('reserved_room_type').value;
+
+        // Construcción del JSON (Feature Engineering en cliente)
+        const payload = {
+            hotel: document.getElementById('hotel').value,
+            arrival_date_year: 2024,
+            arrival_date_month: document.getElementById('arrival_date_month').value,
+            meal: document.getElementById('meal').value,
+            country: document.getElementById('country').value,
+            market_segment: document.getElementById('market_segment').value,
+            distribution_channel: document.getElementById('distribution_channel').value,
+            reserved_room_type: roomType,
+            assigned_room_type: roomType,
+            deposit_type: document.getElementById('deposit_type').value,
+            customer_type: document.getElementById('customer_type').value,
+            lead_time: parseInt(document.getElementById('lead_time').value),
+            arrival_date_week_number: parseInt(document.getElementById('arrival_date_week_number').value),
+            arrival_date_day_of_month: parseInt(document.getElementById('arrival_date_day_of_month').value),
+            stays_in_weekend_nights: weekend_nights,
+            stays_in_week_nights: week_nights,
+            adults: adults,
+            children: children,
+            babies: babies,
+            // Valores por defecto (ocultos al usuario)
+            is_repeated_guest: 0,
+            previous_cancellations: 0,
+            previous_bookings_not_canceled: 0,
+            booking_changes: 0,
+            agent: 9,
+            company: 0, 
+            days_in_waiting_list: 0,
+            required_car_parking_spaces: parseInt(document.getElementById('required_car_parking_spaces').value),
+            total_of_special_requests: parseInt(document.getElementById('total_of_special_requests').value),
+            
+            // Totales calculados
+            total_people: adults + children + babies,
+            total_nights: weekend_nights + week_nights
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/prediccion_adr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+
+            const data = await response.json();
+            
+            // Mostrar resultado
+            waiting.style.display = 'none';
+            result.style.display = 'block';
+            priceSpan.innerText = data.predicción_adr;
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al conectar con la API. Revisa la consola.');
+        } finally {
+            // Restaurar botón
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

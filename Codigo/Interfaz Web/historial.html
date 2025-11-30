@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial IA | Hotel Intelligence</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
+        
+        /* Sidebar (Igual al resto) */
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px; transition: 0.2s; }
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; }
+        
+        /* Estilos de la Tabla */
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        .table thead th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .table tbody td {
+            padding: 16px;
+            vertical-align: middle;
+            color: #334155;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .table tbody tr:last-child td { border-bottom: none; }
+        .table tbody tr:hover { background-color: #f8fafc; }
+
+        /* Badge del Precio */
+        .price-badge {
+            background-color: #eef2ff;
+            color: #4f46e5;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+
+        /* Badge de Hotel */
+        .hotel-badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 500;
+        }
+        .hotel-city { background-color: #e0f2fe; color: #0284c7; }
+        .hotel-resort { background-color: #dcfce7; color: #166534; }
+
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+            <nav>
+                <a href="index.html"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="borrar_reserva.html"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html" class="active"><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-5 py-5">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold text-dark mb-1">Historial de Predicciones</h1>
+                    <p class="text-muted small">Registro de las últimas consultas realizadas al modelo de Inteligencia Artificial.</p>
+                </div>
+                <button class="btn btn-white border shadow-sm text-muted" onclick="cargarHistorial()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+                </button>
+            </div>
+
+            <div class="table-card shadow-sm">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Fecha Consulta</th>
+                                <th>Hotel</th>
+                                <th>Mes / Antelación</th>
+                                <th>Huéspedes</th>
+                                <th>Habitación</th>
+                                <th>Segmento</th>
+                                <th class="text-end pe-4">Precio Predicho</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaHistorial">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div id="loading" class="text-center py-5">
+                    <div class="spinner-border text-primary opacity-50" role="status"></div>
+                    <p class="text-muted mt-2 small">Recuperando datos...</p>
+                </div>
+
+                <div id="emptyState" class="text-center py-5" style="display: none;">
+                    <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
+                    <p class="text-muted mt-2">No hay predicciones guardadas todavía.</p>
+                    <a href="prediccion.html" class="btn btn-sm btn-primary">Realizar nueva predicción</a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', cargarHistorial);
+
+    async function cargarHistorial() {
+        const tbody = document.getElementById('tablaHistorial');
+        const loading = document.getElementById('loading');
+        const empty = document.getElementById('emptyState');
+        
+        // Reset UI
+        tbody.innerHTML = '';
+        loading.style.display = 'block';
+        empty.style.display = 'none';
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/historial_predicciones/');
+            const data = await response.json();
+            
+            loading.style.display = 'none';
+
+            // Validar si hay datos
+            if (!data.historial || data.historial.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+
+            // Renderizar filas
+            data.historial.forEach(item => {
+                
+                // Formatear Fecha
+                const fechaObj = new Date(item.fecha_consulta);
+                const fechaStr = fechaObj.toLocaleDateString() + ' ' + fechaObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                // Estilo Badge Hotel
+                let hotelBadge = '';
+                if (item.hotel.includes('City')) {
+                    hotelBadge = `<span class="hotel-badge hotel-city"><i class="bi bi-building me-1"></i> City</span>`;
+                } else {
+                    hotelBadge = `<span class="hotel-badge hotel-resort"><i class="bi bi-umbrella me-1"></i> Resort</span>`;
+                }
+
+                // Cálculo total personas
+                const totalPax = (item.adultos || 0) + (item.ninos || 0);
+
+                const row = `
+                    <tr>
+                        <td class="ps-4 text-muted small">${fechaStr}</td>
+                        <td>${hotelBadge}</td>
+                        <td>
+                            <div class="fw-bold text-dark">${item.mes_llegada}</div>
+                            <small class="text-muted">${item.antelacion_dias} días antelación</small>
+                        </td>
+                        <td>
+                            <i class="bi bi-people text-muted me-1"></i> ${totalPax} 
+                            <small class="text-muted">(${item.adultos} Ad / ${item.ninos} Ni)</small>
+                        </td>
+                        <td><span class="badge bg-secondary bg-opacity-10 text-dark">Tipo ${item.habitacion}</span></td>
+                        <td class="text-muted small">${item.segmento}</td>
+                        <td class="text-end pe-4">
+                            <span class="price-badge">${item.precio_predicho}€</span>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+        } catch (error) {
+            console.error(error);
+            loading.innerHTML = '<p class="text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Error de conexión con la API</p>';
+        }
+    }
+</script>
+
+</body>
+</html>
