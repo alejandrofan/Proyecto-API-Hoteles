@@ -40,9 +40,9 @@ Los datos utilizados en este estudio provienen del dataset **“hotel_bookings.c
 
 ## Instalación y Ejecución
 1. **Preparar entorno**: Recomendable usar un entorno virtual (conda o venv). pip install -r requirements.txt
-2. **Inicializar la Base de Datos**: Crea las tablas necesarias ("reservas" y "historial_predicciones"). python Database_Reservas_Hotel.py
-3. **Arrancar la API**: Verás un mensaje indicando que el servidor corre en: http://127.0.0.1:8000. python main.py
-4. **Usar la Aplicación**: La intefaz web se conectará automáticamente a tu API local. index.html
+2. **Inicializar la Base de Datos**: Crea las tablas necesarias ("reservas" y "historial_predicciones"). `src/Data/Database_Reservas_Hotel.py`
+3. **Arrancar la API**: Verás un mensaje indicando que el servidor corre en: http://127.0.0.1:8000. `src/Codigo/API/main.py`
+4. **Usar la Aplicación**: La intefaz web se conectará automáticamente a tu API local. `src/Codigo/Interfaz Web/index.html`
 
 ## Trabajo Universitario
 Este proyecto ha sido desarrollado como trabajo académico para fines de aprendizaje y evaluación universitaria. Su objetivo es demostrar el flujo completo de un proyecto de Data Science, Machine Learning, desarrollo de API e interfaz web interactivo. 
