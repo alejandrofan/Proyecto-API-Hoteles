@@ -40,7 +40,7 @@ Los datos utilizados en este estudio provienen del dataset `Data/hotel_bookings.
 
 ## Instalación y Ejecución
 1. **Preparar entorno**: Recomendable usar un entorno virtual (conda o venv). pip install -r requirements.txt
-2. **Inicializar la Base de Datos**: Crea las tablas necesarias ("reservas" y "historial_predicciones"). `Data/Database_Reservas_Hotel.py`
+2. **Inicializar la Base de Datos**: Crea las tablas necesarias ("reservas" y "historial_predicciones"). `Codigo/Database/Database_Reservas_Hotel.py`
 3. **Arrancar la API**: Verás un mensaje indicando que el servidor corre en: http://127.0.0.1:8000. `Codigo/API/main.py`
 4. **Usar la Aplicación**: La intefaz web se conectará automáticamente a tu API local. `Codigo/Interfaz Web/index.html`
 
