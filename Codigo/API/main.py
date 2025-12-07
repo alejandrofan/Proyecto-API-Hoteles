@@ -4,7 +4,6 @@ import os
 import joblib
 import uvicorn
 import nest_asyncio
-import xgboost 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -262,7 +261,12 @@ async def estadisticas_descriptivas():
     stats["total_reservas"] = total
     return stats
 
-
+@app.get("/reservas/{id}", tags=["Gestión Reservas"])
+def obtener_una_reserva(id: int):
+    row = ejecutar_query("SELECT * FROM reservas WHERE id = ?", (id,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Reserva no encontrada")
+    return dict(row)
 
 @app.post("/reservas/", tags=["Gestión Reservas"])
 def crear_reserva(reserva: Reserva):
@@ -283,45 +287,24 @@ def crear_reserva(reserva: Reserva):
     return {"mensaje": "Reserva creada", "id": new_id}
 
 
-@app.put("/reservas/{id}", tags=["Gestión Reservas"])
-def actualizar_reserva(id: int, reserva_actualizada: Reserva):
-
-    query_check = "SELECT id FROM reservas WHERE id = ?"
-    check = ejecutar_query(query_check, (id,)).fetchone()
-    
+@app.put("/reservas/{id}")
+def actualizar_reserva(id: int, reserva: Reserva):
+    # 1. Comprobar si existe
+    check = ejecutar_query("SELECT id FROM reservas WHERE id = ?", (id,)).fetchone()
     if not check:
-        raise HTTPException(status_code=404, detail=f"Reserva con ID {id} no encontrada")
-
-    query_update = """
-        UPDATE reservas
-        SET hotel = ?, 
-            arrival_date_year = ?, 
-            arrival_date_month = ?, 
-            adr = ?, 
-            is_canceled = ?, 
-            country = ?, 
-            adults = ?, 
-            children = ?
-        WHERE id = ?
+        raise HTTPException(status_code=404, detail="Reserva no encontrada")
+    
+    # 2. Actualizar SQL
+    query = """
+        UPDATE reservas 
+        SET hotel=?, arrival_date_year=?, arrival_date_month=?, adr=?, is_canceled=?, country=?, adults=?, children=?
+        WHERE id=?
     """
+    params = (reserva.hotel, reserva.arrival_date_year, reserva.arrival_date_month, 
+              reserva.adr, reserva.is_canceled, reserva.country, reserva.adults, reserva.children, id)
     
-    params = (
-        reserva_actualizada.hotel,
-        reserva_actualizada.arrival_date_year,
-        reserva_actualizada.arrival_date_month,
-        reserva_actualizada.adr,
-        reserva_actualizada.is_canceled,
-        reserva_actualizada.country,
-        reserva_actualizada.adults,
-        reserva_actualizada.children,
-        id
-    )
-    
-    try:
-        ejecutar_query(query_update, params)
-        return {"mensaje": f"Reserva {id} actualizada correctamente", "datos": reserva_actualizada}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al actualizar la base de datos: {str(e)}")
+    ejecutar_query(query, params)
+    return {"mensaje": "Reserva actualizada correctamente", "id": id}
 
 @app.delete("/reservas/{id}", tags=["Gestión Reservas"])
 def borrar_reserva(id: int):

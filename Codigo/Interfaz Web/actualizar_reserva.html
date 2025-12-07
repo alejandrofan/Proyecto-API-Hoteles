@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Reserva | Hotel AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f3f4f6; }
+        .sidebar { min-height: 100vh; background-color: #1e293b; color: white; }
+        .sidebar a { color: #94a3b8; text-decoration: none; padding: 12px; display: block; border-radius: 8px; margin-bottom: 4px;}
+        .sidebar a.active, .sidebar a:hover { background-color: #334155; color: white; }
+        
+        /* Borde azul para indicar Edición */
+        .update-card { border-top: 4px solid #0d6efd; } 
+        .form-label { font-weight: 500; font-size: 0.9rem; color: #495057; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        
+        <div class="col-md-2 sidebar p-3 d-none d-md-block">
+            <h4 class="mb-4 text-white"><i class="bi bi-robot"></i> Dashboard API</h4>
+              <nav>
+                <a href="index.html"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="datos.html"><i class="bi bi-table me-2"></i> Consultar datos</a>
+                <a href="paises.html"><i class="bi bi-globe-americas me-2"></i> Países</a>
+                <a href="tipos_hotel.html"><i class="bi bi-buildings me-2"></i> Tipos Hoteles</a>
+                <a href="reservas_status.html"><i class="bi bi-pie-chart-fill me-2"></i> Estado Reservas</a>
+                <a href="estadisticas.html"><i class="bi bi-bar-chart-line me-2"></i> Estadísticas</a>
+                <a href="crear_reserva.html"><i class="bi bi-calendar-plus me-2"></i> Crear Reserva</a>
+                <a href="actualizar_reserva.html" class="active"><i class="bi bi-pencil-square me-2"></i> Actualizar Reserva</a>
+                <a href="borrar_reserva.html"><i class="bi bi-trash3 me-2"></i> Borrar Reserva</a>
+                <a href="prediccion.html"><i class="bi bi-magic me-2"></i> Predicción ADR</a>
+                <a href="historial.html" ><i class="bi bi-clock-history me-2"></i> Historial IA</a>
+            </nav>
+        </div>
+
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            
+            <h2 class="mb-4">Modificar Reserva Existente</h2>
+
+            <div class="row justify-content-center">
+                <div class="col-xl-9">
+                    
+                    <div class="card shadow-sm update-card">
+                        <div class="card-body p-4">
+                            
+                            <div class="mb-4 pb-3 border-bottom">
+                                <label class="form-label text-primary fw-bold">1. Selecciona la Reserva</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">ID #</span>
+                                    <input type="number" class="form-control" id="reserva_id" placeholder="Introduce el ID a modificar" required>
+                                    <button class="btn btn-outline-primary" type="button" onclick="cargarDatos()">
+                                        <i class="bi bi-search me-1"></i> Cargar Datos
+                                    </button>
+                                </div>
+                                <div class="form-text">Introduce el ID y pulsa buscar para rellenar el formulario (Opcional).</div>
+                            </div>
+
+                            <h5 class="card-title mb-4"><i class="bi bi-pencil-square me-2"></i>2. Nuevos Datos</h5>
+                            
+                            <form id="updateForm" onsubmit="actualizarReserva(event)">
+                                <div class="row g-3">
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label">Hotel</label>
+                                        <select class="form-select" id="hotel">
+                                            <option value="City Hotel">City Hotel</option>
+                                            <option value="Resort Hotel">Resort Hotel</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Año Llegada</label>
+                                        <input type="number" class="form-control" id="year" value="2024" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Mes Llegada</label>
+                                        <select class="form-select" id="month">
+                                            <option value="January">Enero (January)</option>
+                                            <option value="February">Febrero (February)</option>
+                                            <option value="March">Marzo (March)</option>
+                                            <option value="April">Abril (April)</option>
+                                            <option value="May">Mayo (May)</option>
+                                            <option value="June">Junio (June)</option>
+                                            <option value="July">Julio (July)</option>
+                                            <option value="August">Agosto (August)</option>
+                                            <option value="September">Septiembre (September)</option>
+                                            <option value="October">Octubre (October)</option>
+                                            <option value="November">Noviembre (November)</option>
+                                            <option value="December">Diciembre (December)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Precio (ADR)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">€</span>
+                                            <input type="number" step="0.01" class="form-control" id="adr" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">País (ISO Code)</label>
+                                        <input type="text" class="form-control" id="country" maxlength="3" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Estado</label>
+                                        <select class="form-select" id="is_canceled">
+                                            <option value="0">Activa (No cancelada)</option>
+                                            <option value="1">Cancelada</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Adultos</label>
+                                        <input type="number" class="form-control" id="adults" min="1" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Niños</label>
+                                        <input type="number" class="form-control" id="children" min="0">
+                                    </div>
+
+                                </div>
+
+                                <div class="mt-4 text-end">
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="bi bi-save me-2"></i> Actualizar Reserva
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="alertSuccess" class="alert alert-primary mt-4 shadow-sm" style="display: none;">
+                        <h4 class="alert-heading"><i class="bi bi-info-circle-fill me-2"></i>¡Actualización Correcta!</h4>
+                        <p>Los datos de la reserva han sido modificados en la base de datos.</p>
+                        <hr>
+                        <p class="mb-0"><strong>ID Modificado:</strong> <span id="updatedId" class="fs-5 fw-bold"></span></p>
+                    </div>
+
+                    <div id="alertError" class="alert alert-danger mt-4 shadow-sm" style="display: none;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Error:</strong> <span id="errorText"></span>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 1. FUNCIÓN PARA CARGAR DATOS (OPCIONAL)
+    // Requiere que tengas un endpoint GET /reservas/{id} en Python
+    async function cargarDatos() {
+        const id = document.getElementById('reserva_id').value;
+        if (!id) return alert("Por favor introduce un ID");
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/reservas/${id}`);
+            if (!response.ok) throw new Error("Reserva no encontrada");
+            
+            const data = await response.json();
+            
+            // Rellenar formulario
+            document.getElementById('hotel').value = data.hotel;
+            document.getElementById('year').value = data.arrival_date_year;
+            document.getElementById('month').value = data.arrival_date_month;
+            document.getElementById('adr').value = data.adr;
+            document.getElementById('country').value = data.country;
+            document.getElementById('is_canceled').value = data.is_canceled;
+            document.getElementById('adults').value = data.adults;
+            document.getElementById('children').value = data.children;
+            
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    // 2. FUNCIÓN PRINCIPAL DE ACTUALIZAR (PUT)
+    async function actualizarReserva(event) {
+        event.preventDefault(); 
+
+        const id = document.getElementById('reserva_id').value;
+        if (!id) {
+            alert("Debes indicar el ID de la reserva");
+            return;
+        }
+
+        const payload = {
+            hotel: document.getElementById('hotel').value,
+            arrival_date_year: parseInt(document.getElementById('year').value),
+            arrival_date_month: document.getElementById('month').value,
+            adr: parseFloat(document.getElementById('adr').value),
+            is_canceled: parseInt(document.getElementById('is_canceled').value),
+            country: document.getElementById('country').value,
+            adults: parseInt(document.getElementById('adults').value),
+            children: parseFloat(document.getElementById('children').value) || 0.0
+        };
+
+        // Reset UI
+        document.getElementById('alertSuccess').style.display = 'none';
+        document.getElementById('alertError').style.display = 'none';
+
+        try {
+            // NOTA: Usamos PUT y añadimos el ID a la URL
+            const response = await fetch(`http://127.0.0.1:8000/reservas/${id}`, {
+                method: 'PUT', 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || "Error al actualizar");
+            }
+
+            const data = await response.json();
+
+            // Mostrar Éxito
+            document.getElementById('alertSuccess').style.display = 'block';
+            document.getElementById('updatedId').innerText = id;
+
+        } catch (error) {
+            // Mostrar Error
+            document.getElementById('alertError').style.display = 'block';
+            document.getElementById('errorText').innerText = error.message;
+        }
+    }
+</script>
+
+</body>
+</html>
