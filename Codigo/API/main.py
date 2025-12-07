@@ -16,7 +16,7 @@ nest_asyncio.apply()
 app = FastAPI(
     title="Hotel Intelligence API",
     description="API para análisis de datos hoteleros y consulta de KPIs",
-    version="2.6"
+    version="2.7" 
 )
 
 # --- CONFIGURACIÓN CORS ---
@@ -29,8 +29,7 @@ app.add_middleware(
 )
 
 # --- CONFIGURACIÓN DE RUTAS ---
-# MANTENGO TUS RUTAS ORIGINALES
-BASE_DIR = "C:\Proyecto-API-Hoteles/" 
+BASE_DIR = "C:/Users/Administrador/OneDrive - ESIC/Proyecto Big Data I/TO Hoteles/" 
 raiz_data = BASE_DIR + "Data/"
 raiz_ml = BASE_DIR + "ML/"
 
@@ -47,7 +46,7 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # 1. Tabla Historial Predicciones (Aseguramos que exista al iniciar la API)
+    # 1. Tabla Historial Predicciones
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS historial_predicciones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,7 +54,7 @@ def init_db():
             hotel TEXT,
             mes_llegada TEXT,
             antelacion_dias INTEGER,
-            adultos INTEGER,
+            adults INTEGER,
             ninos INTEGER,
             habitacion TEXT,
             segmento TEXT,
@@ -64,7 +63,7 @@ def init_db():
     """)
     conn.commit()
     
-    # 2. Si no existe la DB, intentamos crear la tabla reservas básica
+    # 2. Tabla Reservas 
     if not os.path.exists(DB_NAME):
         conn.execute("CREATE TABLE IF NOT EXISTS reservas (id INTEGER PRIMARY KEY)") 
     
@@ -155,7 +154,6 @@ async def obtener_prediccion(datos: DatosReserva):
             (fecha_consulta, hotel, mes_llegada, antelacion_dias, adultos, ninos, habitacion, segmento, precio_predicho)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
-        # Capturamos la fecha/hora actual
         ahora = datetime.now()
         
         params_save = (
@@ -174,14 +172,12 @@ async def obtener_prediccion(datos: DatosReserva):
         return {"predicción_adr": resultado_adr}
     
     except Exception as e:
-        print(f"Error detallado: {e}") # Para ver el error en la consola
+        print(f"Error detallado: {e}") 
         raise HTTPException(status_code=400, detail=f"Error del Modelo ML: {str(e)}")
 
-# --- NUEVO ENDPOINT: CONSULTAR HISTORIAL ---
 @app.get("/historial_predicciones/", tags=["Business Intelligence"])
 async def consultar_historial():
     try:
-        # Recuperamos las últimas 50 predicciones (ordenadas por ID descendente)
         query = "SELECT * FROM historial_predicciones ORDER BY id DESC LIMIT 50"
         cursor = ejecutar_query(query)
         resultados = [dict(row) for row in cursor.fetchall()]
@@ -234,7 +230,6 @@ async def contar_estado_reservas():
             GROUP BY is_canceled
         """
         cursor = ejecutar_query(query)
-        # Adaptamos para el frontend (0=CheckOut, 1=Canceled)
         resultado = {"Check-Out": 0, "Canceled": 0, "No-Show": 0}
         
         for row in cursor.fetchall():
@@ -267,9 +262,10 @@ async def estadisticas_descriptivas():
     stats["total_reservas"] = total
     return stats
 
-@app.post("/reservas/")
+
+
+@app.post("/reservas/", tags=["Gestión Reservas"])
 def crear_reserva(reserva: Reserva):
-    # Generar ID manual para evitar errores
     try:
         row = ejecutar_query("SELECT MAX(id) as max_id FROM reservas").fetchone()
         new_id = (row["max_id"] if row and row["max_id"] is not None else 0) + 1
@@ -286,7 +282,48 @@ def crear_reserva(reserva: Reserva):
     cursor = ejecutar_query(query, params)
     return {"mensaje": "Reserva creada", "id": new_id}
 
-@app.delete("/reservas/{id}")
+
+@app.put("/reservas/{id}", tags=["Gestión Reservas"])
+def actualizar_reserva(id: int, reserva_actualizada: Reserva):
+
+    query_check = "SELECT id FROM reservas WHERE id = ?"
+    check = ejecutar_query(query_check, (id,)).fetchone()
+    
+    if not check:
+        raise HTTPException(status_code=404, detail=f"Reserva con ID {id} no encontrada")
+
+    query_update = """
+        UPDATE reservas
+        SET hotel = ?, 
+            arrival_date_year = ?, 
+            arrival_date_month = ?, 
+            adr = ?, 
+            is_canceled = ?, 
+            country = ?, 
+            adults = ?, 
+            children = ?
+        WHERE id = ?
+    """
+    
+    params = (
+        reserva_actualizada.hotel,
+        reserva_actualizada.arrival_date_year,
+        reserva_actualizada.arrival_date_month,
+        reserva_actualizada.adr,
+        reserva_actualizada.is_canceled,
+        reserva_actualizada.country,
+        reserva_actualizada.adults,
+        reserva_actualizada.children,
+        id
+    )
+    
+    try:
+        ejecutar_query(query_update, params)
+        return {"mensaje": f"Reserva {id} actualizada correctamente", "datos": reserva_actualizada}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al actualizar la base de datos: {str(e)}")
+
+@app.delete("/reservas/{id}", tags=["Gestión Reservas"])
 def borrar_reserva(id: int):
     check = ejecutar_query("SELECT id FROM reservas WHERE id = ?", (id,)).fetchone()
     if not check:
@@ -294,13 +331,10 @@ def borrar_reserva(id: int):
     ejecutar_query("DELETE FROM reservas WHERE id = ?", (id,))
     return {"mensaje": f"Reserva {id} eliminada"}
 
-# --- EJECUCIÓN ---
+
 if __name__ == "__main__":
-    print("🚀 Iniciando servidor API (Con Pipeline Joblib y Historial)...")
+    print("🚀 Iniciando servidor API (v2.7) ...")
     uvicorn.run(app, host="127.0.0.1", port=8000)
-
-
-
 
 
 
